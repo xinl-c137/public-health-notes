@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://xinl-c137.github.io/public-health-notes/sitemap.xml

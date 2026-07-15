@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="公卫研习室：免费开放的公共卫生课程笔记与复习资料，涵盖流行病学、环境健康学、毒理学、营养学、职业卫生学、职业病学和精神病学。" />
+    <meta name="keywords" content="公共卫生,公卫笔记,流行病学,环境健康学,毒理学,营养学,职业卫生学,职业病学,精神病学,课程复习" />
+    <meta name="author" content="xinl-c137" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="theme-color" content="#f7f5ef" />
+    <link rel="canonical" href="https://xinl-c137.github.io/public-health-notes/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:site_name" content="公卫研习室" />
+    <meta property="og:title" content="公卫研习室｜公共卫生课程笔记" />
+    <meta property="og:description" content="免费开放的公共卫生课程笔记、重点梳理与复习资料。" />
+    <meta property="og:url" content="https://xinl-c137.github.io/public-health-notes/" />
+    <title>公卫研习室｜公共卫生课程笔记与复习资料</title>
+    <link rel="stylesheet" href="assets/styles.css" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "公卫研习室",
+        "alternateName": "公共卫生课程笔记",
+        "url": "https://xinl-c137.github.io/public-health-notes/",
+        "description": "免费开放的公共卫生课程笔记与复习资料",
+        "inLanguage": "zh-CN",
+        "author": { "@type": "Person", "name": "xinl-c137" }
+      }
+    </script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <button class="icon-button menu-button" id="menuButton" aria-label="打开目录">☰</button>
+        <a class="brand" href="#/">
+          <span class="brand-mark" aria-hidden="true">卫</span>
+          <span>
+            <strong>公卫研习室</strong>
+            <small>PUBLIC HEALTH NOTES</small>
+          </span>
+        </a>
+        <div class="top-actions">
+          <button class="search-trigger" id="searchTrigger" aria-label="搜索笔记">
+            <span>⌕</span><span class="search-label">搜索笔记</span><kbd>Ctrl K</kbd>
+          </button>
+          <button class="icon-button" id="themeButton" aria-label="切换主题">◐</button>
+        </div>
+      </header>
+
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-heading">
+          <span>课程目录</span>
+          <button class="icon-button sidebar-close" id="sidebarClose" aria-label="关闭目录">×</button>
+        </div>
+        <nav id="noteTree" aria-label="笔记目录"></nav>
+        <footer class="sidebar-footer">
+          <span class="status-dot"></span>
+          <span id="noteCount">正在载入…</span>
+        </footer>
+      </aside>
+
+      <main class="main" id="mainContent">
+        <div class="loading">正在整理书桌…</div>
+      </main>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    <dialog class="search-dialog" id="searchDialog">
+      <div class="search-box">
+        <span>⌕</span>
+        <input id="searchInput" type="search" placeholder="搜索标题或正文…" autocomplete="off" />
+        <button id="searchClose" aria-label="关闭搜索">Esc</button>
+      </div>
+      <div class="search-results" id="searchResults"></div>
+    </dialog>
+
+    <script src="assets/app.js"></script>
+  </body>
+</html>

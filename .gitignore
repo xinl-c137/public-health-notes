@@ -1,0 +1,7 @@
+.agents/
+.codex/
+.openai/
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
