@@ -72,9 +72,52 @@ function wikiLink(target, label) {
   return match ? `<a href="#/note/${encodeURIComponent(match.path)}">${escapeHtml(label)}</a>` : `<span class="broken-link">${escapeHtml(label)}</span>`;
 }
 
+function parseFrontmatter(source) {
+  const match = source.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
+  if (!match) return { body: source, properties: [] };
+  const properties = [];
+  let current = null;
+  const cleanValue = value => value.trim().replace(/^['"]|['"]$/g, "");
+  for (const line of match[1].replace(/\r/g, "").split("\n")) {
+    const property = line.match(/^([^\s:#][^:]*):\s*(.*)$/);
+    if (property) {
+      current = { key: property[1].trim(), values: [] };
+      const value = cleanValue(property[2]);
+      if (value) {
+        if (value.startsWith("[") && value.endsWith("]")) current.values.push(...value.slice(1, -1).split(",").map(cleanValue).filter(Boolean));
+        else current.values.push(value);
+      }
+      properties.push(current);
+      continue;
+    }
+    const listItem = line.match(/^\s*-\s+(.+)$/);
+    if (listItem && current) current.values.push(cleanValue(listItem[1]));
+  }
+  return { body: source.slice(match[0].length), properties };
+}
+
+function renderProperties(properties) {
+  if (!properties.length) return "";
+  const preferredOrder = { "时间": 0, aliases: 1, tags: 2 };
+  const icons = { "时间": "◷", aliases: "↗", tags: "◇" };
+  const labels = { "时间": "时间", aliases: "别名", tags: "标签" };
+  const sorted = [...properties].sort((a, b) => (preferredOrder[a.key] ?? 99) - (preferredOrder[b.key] ?? 99));
+  return `<section class="note-properties" aria-label="笔记属性">
+    <div class="properties-title">笔记属性</div>
+    <dl>${sorted.map(property => {
+      const values = property.key === "时间"
+        ? property.values.map(value => value.replace(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::\d{2})?/, "$1/$2/$3 $4:$5"))
+        : property.values;
+      const valueHtml = property.key === "tags"
+        ? values.map(value => `<span class="property-chip">${escapeHtml(value)}</span>`).join("")
+        : values.map(value => `<span class="property-value">${escapeHtml(value)}</span>`).join("");
+      return `<div class="property-row"><dt><span class="property-icon" aria-hidden="true">${icons[property.key] || "·"}</span>${escapeHtml(labels[property.key] || property.key)}</dt><dd>${valueHtml || '<span class="property-empty">—</span>'}</dd></div>`;
+    }).join("")}</dl>
+  </section>`;
+}
+
 function markdown(source) {
   source = source.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, "");
-  source = source.replace(/^#\s+.+\r?\n+/, "");
   const lines = source.replace(/\r/g, "").split("\n");
   let html = "", list = null, inCode = false, code = [], paragraph = [];
   const flushParagraph = () => { if (paragraph.length) { html += `<p>${inline(paragraph.join(" "))}</p>`; paragraph = []; } };
@@ -221,15 +264,16 @@ async function renderNote(path) {
   if (!note) return renderNotFound();
   state.currentNote = note;
   const source = await getNote(note);
+  const parsed = parseFrontmatter(source);
   $("#mainContent").innerHTML = `<article class="note">
     <div class="breadcrumbs"><a href="#/">首页</a>　/　${escapeHtml(note.category || "笔记")}</div>
     <header class="note-header">
       <span class="eyebrow">${escapeHtml(note.category || "Public Health")}</span>
       <h1>${escapeHtml(note.title)}</h1>
-      ${note.description ? `<p class="note-description">${escapeHtml(note.description)}</p>` : ""}
-      <div class="note-meta"><span>更新于 ${escapeHtml(note.updated || "最近")}</span><span>约 ${Math.max(1, Math.ceil(source.length / 600))} 分钟阅读</span></div>
+      ${renderProperties(parsed.properties)}
+      <div class="note-meta"><span>约 ${Math.max(1, Math.ceil(parsed.body.length / 600))} 分钟阅读</span></div>
     </header>
-    <div class="markdown-body">${markdown(source)}</div>
+    <div class="markdown-body">${markdown(parsed.body)}</div>
   </article>`;
   document.title = `${note.title}｜公卫研习室`;
   openNoteGroup(path);
