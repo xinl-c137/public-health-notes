@@ -6,6 +6,14 @@ const escapeHtml = (value = "") => value
   .replaceAll(">", "&gt;").replaceAll('"', "&quot;");
 
 function inline(text) {
+  const formulas = [];
+  const stashFormula = (source, displayMode) => {
+    const index = formulas.push({ source, displayMode }) - 1;
+    return `\uE000MATH${index}\uE001`;
+  };
+  text = text
+    .replace(/\$\$([^\r\n]+?)\$\$/g, (_, source) => stashFormula(source, true))
+    .replace(/(?<!\$)\$([^\r\n$]+?)\$(?!\$)/g, (_, source) => stashFormula(source, false));
   return escapeHtml(text)
     .replace(/!\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, (_, target, size) => embeddedAsset(target, size))
     .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" loading="lazy">')
@@ -16,7 +24,29 @@ function inline(text) {
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
     .replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, "<em>$1</em>")
     .replace(/~~([^~]+)~~/g, "<del>$1</del>")
-    .replace(/==(.+?)==/g, "<mark>$1</mark>");
+    .replace(/==(.+?)==/g, "<mark>$1</mark>")
+    .replace(/&lt;(u|sup|sub)&gt;([\s\S]*?)&lt;\/\1&gt;/gi, "<$1>$2</$1>")
+    .replace(/\uE000MATH(\d+)\uE001/g, (_, index) => renderLatex(formulas[Number(index)].source, formulas[Number(index)].displayMode));
+}
+
+function renderLatex(source, displayMode = false) {
+  if (!window.katex) return `<code class="latex-fallback">${escapeHtml(source)}</code>`;
+  try {
+    const normalized = source.trim()
+      .replaceAll("\\begin{gather}", "\\begin{gathered}")
+      .replaceAll("\\end{gather}", "\\end{gathered}")
+      .replace(/[\u200B-\u200D\uFEFF]/g, "")
+      .replaceAll("　", "\\quad ");
+    return katex.renderToString(normalized, {
+      displayMode,
+      throwOnError: false,
+      strict: "ignore",
+      trust: false,
+      output: "htmlAndMathml"
+    });
+  } catch {
+    return `<code class="latex-fallback">${escapeHtml(source)}</code>`;
+  }
 }
 
 function embeddedAsset(target, size = "") {
@@ -59,11 +89,21 @@ function markdown(source) {
       inCode = !inCode; continue;
     }
     if (inCode) { code.push(line); continue; }
-    if (line.trim() === "$$") {
+    const trimmed = line.trim();
+    const singleLineMath = trimmed.match(/^\$\$(.+)\$\$$/);
+    if (singleLineMath) {
+      closeBlocks();
+      html += `<div class="math-block">${renderLatex(singleLineMath[1], true)}</div>`;
+      continue;
+    }
+    if (trimmed === "$$" || trimmed === ">$$") {
       closeBlocks();
       const mathLines = [];
-      while (++i < lines.length && lines[i].trim() !== "$$") mathLines.push(lines[i]);
-      html += `<div class="math-block">${escapeHtml(mathLines.join("\n"))}</div>`;
+      const quoted = trimmed.startsWith(">");
+      while (++i < lines.length && !/^>?\$\$$/.test(lines[i].trim())) {
+        mathLines.push(quoted ? lines[i].replace(/^>\s?/, "") : lines[i]);
+      }
+      html += `<div class="math-block">${renderLatex(mathLines.join("\n"), true)}</div>`;
       continue;
     }
     if (/^\s*\|.+\|\s*$/.test(line) && i + 1 < lines.length && /^\s*\|?\s*:?-{3,}/.test(lines[i + 1])) {

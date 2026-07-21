@@ -144,10 +144,15 @@ h3 { margin-top: 1.8em; font-size: 20px; }
 .markdown-body th { background: var(--green-soft); }
 .table-wrap { max-width: 100%; overflow-x: auto; }
 .markdown-body mark { padding: .05em .18em; color: inherit; background: color-mix(in srgb, #f1c75b 45%, transparent); }
+.markdown-body u { text-decoration-line: underline; text-decoration-color: var(--ochre); text-decoration-thickness: 1.5px; text-underline-offset: .18em; }
+.markdown-body sup, .markdown-body sub { font-size: .72em; line-height: 0; }
 .note-image { display: block; width: auto; max-width: 100%; height: auto; margin: 1.5em auto; border-radius: 10px; box-shadow: 0 8px 24px rgba(34, 45, 40, .10); }
 .missing-asset { display: inline-block; margin: .25em 0; padding: .35em .65em; border: 1px dashed var(--ochre); border-radius: 6px; color: var(--ochre); font-size: 13px; }
 .attachment-link { display: inline-block; padding: .35em .65em; border-radius: 6px; background: var(--green-soft); }
-.math-block { overflow-x: auto; margin: 1.5em 0; padding: 14px 18px; border-left: 3px solid var(--green); color: var(--ink); background: var(--surface); font-family: "Times New Roman", serif; white-space: pre-wrap; }
+.math-block { overflow-x: auto; margin: 1.5em 0; padding: 14px 18px; border-left: 3px solid var(--green); color: var(--ink); background: var(--surface); text-align: center; }
+.katex-display { margin: .35em 0 !important; overflow-x: auto; overflow-y: hidden; }
+.katex { color: var(--ink); font-size: 1.05em; }
+.latex-fallback { white-space: pre-wrap; }
 .callout { margin: 1.5em 0; padding: 16px 18px; border: 1px solid color-mix(in srgb, var(--green) 25%, var(--line)); border-radius: 10px; background: var(--green-soft); }
 .callout-title { margin-bottom: 5px; color: var(--green); font-weight: 600; }
 
