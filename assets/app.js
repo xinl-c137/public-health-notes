@@ -56,9 +56,11 @@ function embeddedAsset(target, size = "") {
   const matches = state.attachments.filter(item => {
     const name = item.name.toLowerCase();
     const relative = item.relative.toLowerCase();
-    return name === basename || name === `${basename}.md` || relative.endsWith(clean.toLowerCase()) || relative.endsWith(`${clean.toLowerCase()}.md`);
+    return name === basename || name === `${basename}.md` || name === `${basename}.svg` || name === `${basename}.png` || relative.endsWith(clean.toLowerCase()) || relative.endsWith(`${clean.toLowerCase()}.md`) || relative.endsWith(`${clean.toLowerCase()}.svg`) || relative.endsWith(`${clean.toLowerCase()}.png`);
   });
-  const asset = matches.find(item => item.relative.toLowerCase().includes(`/${category}/`)) || matches[0];
+  const categoryMatches = matches.filter(item => item.relative.toLowerCase().includes(`/${category}/`));
+  const candidates = categoryMatches.length ? categoryMatches : matches;
+  const asset = candidates.find(item => /\.(png|jpe?g|gif|webp|svg|avif)$/i.test(item.name)) || candidates[0];
   const width = /^\d+$/.test(size) ? ` style="max-width:${Math.min(Number(size), 1200)}px"` : "";
   if (!asset) return `<span class="missing-asset" title="附件尚未找到">图片：${escapeHtml(target)}</span>`;
   const url = asset.url.split("/").map((part, index) => index ? encodeURIComponent(part) : part).join("/");
