@@ -145,6 +145,11 @@ h3 { margin-top: 1.8em; font-size: 20px; }
 .markdown-body a { color: var(--green); text-decoration-thickness: 1px; text-underline-offset: 3px; }
 .markdown-body ul, .markdown-body ol { padding-left: 1.5em; }
 .markdown-body li { margin: .35em 0; }
+.markdown-body li > ul, .markdown-body li > ol { margin: .3em 0 .25em .15em; padding-left: 1.65em; border-left: 1px solid var(--line); }
+.markdown-body ul ul { list-style-type: circle; }
+.markdown-body ul ul ul { list-style-type: square; }
+.markdown-body ol ol { list-style-type: lower-alpha; }
+.markdown-body ol ol ol { list-style-type: lower-roman; }
 .markdown-body blockquote { margin: 1.5em 0; padding: .7em 1.2em; border-left: 3px solid var(--ochre); color: var(--muted); background: color-mix(in srgb, var(--ochre) 7%, transparent); }
 .markdown-body code { padding: .15em .4em; border-radius: 5px; background: var(--green-soft); font-family: Consolas, monospace; font-size: .88em; }
 .markdown-body pre { overflow-x: auto; padding: 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }

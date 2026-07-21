@@ -116,13 +116,63 @@ function renderProperties(properties) {
   </section>`;
 }
 
+function parseListLine(line) {
+  const match = line.match(/^(\s*)([-*+]|\d+[.)])\s+(.+)$/);
+  if (!match) return null;
+  const tabs = (match[1].match(/\t/g) || []).length;
+  const spaces = match[1].replace(/\t/g, "").length;
+  const spaceLevels = spaces ? 1 + Math.floor((spaces - 1) / 4) : 0;
+  return {
+    level: tabs + spaceLevels,
+    type: /^\d/.test(match[2]) ? "ol" : "ul",
+    content: match[3]
+  };
+}
+
+function renderListBlock(items) {
+  if (!items.length) return "";
+  const minimumLevel = Math.min(...items.map(item => item.level));
+  const normalized = items.map(item => ({ ...item, level: item.level - minimumLevel }));
+
+  function renderLevel(start, level, type) {
+    let html = `<${type}>`;
+    let index = start;
+    while (index < normalized.length) {
+      const item = normalized[index];
+      if (item.level < level || (item.level === level && item.type !== type)) break;
+      if (item.level > level) {
+        const nested = renderLevel(index, item.level, item.type);
+        html += nested.html;
+        index = nested.index;
+        continue;
+      }
+      html += `<li>${inline(item.content)}`;
+      index++;
+      while (index < normalized.length && normalized[index].level > level) {
+        const nested = renderLevel(index, normalized[index].level, normalized[index].type);
+        html += nested.html;
+        index = nested.index;
+      }
+      html += "</li>";
+    }
+    return { html: `${html}</${type}>`, index };
+  }
+
+  let html = "", index = 0;
+  while (index < normalized.length) {
+    const rendered = renderLevel(index, normalized[index].level, normalized[index].type);
+    html += rendered.html;
+    index = rendered.index;
+  }
+  return html;
+}
+
 function markdown(source) {
   source = source.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, "");
   const lines = source.replace(/\r/g, "").split("\n");
-  let html = "", list = null, inCode = false, code = [], paragraph = [];
+  let html = "", inCode = false, code = [], paragraph = [];
   const flushParagraph = () => { if (paragraph.length) { html += `<p>${inline(paragraph.join(" "))}</p>`; paragraph = []; } };
-  const flushList = () => { if (list) { html += `</${list}>`; list = null; } };
-  const closeBlocks = () => { flushParagraph(); flushList(); };
+  const closeBlocks = () => { flushParagraph(); };
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -163,9 +213,19 @@ function markdown(source) {
     const callout = line.match(/^>\s*\[!([^\]]+)\]\s*(.*)$/);
     if (callout) { closeBlocks(); html += `<aside class="callout"><div class="callout-title">${inline(callout[2] || callout[1])}</div></aside>`; continue; }
     if (/^>/.test(line)) { closeBlocks(); html += `<blockquote>${inline(line.replace(/^>\s?/, ""))}</blockquote>`; continue; }
-    const unordered = line.match(/^\s*[-*+]\s+(.+)$/);
-    const ordered = line.match(/^\s*\d+[.)]\s+(.+)$/);
-    if (unordered || ordered) { flushParagraph(); const wanted = unordered ? "ul" : "ol"; if (list !== wanted) { flushList(); html += `<${wanted}>`; list = wanted; } html += `<li>${inline((unordered || ordered)[1])}</li>`; continue; }
+    const listItem = parseListLine(line);
+    if (listItem) {
+      flushParagraph();
+      const items = [listItem];
+      while (i + 1 < lines.length) {
+        const nextItem = parseListLine(lines[i + 1]);
+        if (!nextItem) break;
+        items.push(nextItem);
+        i++;
+      }
+      html += renderListBlock(items);
+      continue;
+    }
     if (/^---+$/.test(line.trim())) { closeBlocks(); html += "<hr>"; continue; }
     if (!line.trim()) { closeBlocks(); continue; }
     paragraph.push(line.trim());
