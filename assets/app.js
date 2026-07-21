@@ -171,7 +171,7 @@ function markdown(source) {
   source = source.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, "");
   const lines = source.replace(/\r/g, "").split("\n");
   let html = "", inCode = false, code = [], paragraph = [];
-  const flushParagraph = () => { if (paragraph.length) { html += `<p>${inline(paragraph.join(" "))}</p>`; paragraph = []; } };
+  const flushParagraph = () => { if (paragraph.length) { html += `<p>${paragraph.map(line => inline(line)).join("<br>")}</p>`; paragraph = []; } };
   const closeBlocks = () => { flushParagraph(); };
 
   for (let i = 0; i < lines.length; i++) {
